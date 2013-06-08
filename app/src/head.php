@@ -1,5 +1,10 @@
 <?php
-/* ヘッダ */
+/**
+ * Rendering of header. 
+ * 
+ * @params string $dat message log.
+ * @return void
+ */
 function head(&$dat){
   $dat.='<html><head>
 <meta charset="UTF-8"/>
