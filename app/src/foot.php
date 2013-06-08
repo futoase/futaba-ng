@@ -1,5 +1,11 @@
 <?php
 /* フッタ */
+/**
+ * Rendering of footer.
+ *
+ * @params string $dat string of log.
+ * @return void
+ */
 function foot(&$dat){
   $dat.='
 <center>
