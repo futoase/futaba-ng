@@ -12,7 +12,7 @@ function CleanStr($message){
     $strip_slashed_message = stripslashes($trimed_message);
   }
   else{
-    $strip_slashed_message = $trimed_messge;
+    $strip_slashed_message = $trimed_message;
   }
 
   if($admin != ADMIN_PASS){//管理者はタグ可能
