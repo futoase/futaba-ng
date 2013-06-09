@@ -1,5 +1,19 @@
 <?php
 /* 記事書き込み */
+/**
+ * Publish to futaba borad.
+ *
+ * @params string $name user name.
+ * @params string $email user email address.
+ * @params string $sub subject.
+ * @params string $com user comment.
+ * @params string $url 
+ * @params string $pwd user password.
+ * @params string $upfile upload file path.
+ * @params string $upfile_name upload filename.
+ * @params string $resto thread target number.
+ * @return void
+ */
 function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   global $path,$badstring,$badfile,$badip,$pwdc,$textonly;
   $dest="";$mes="";
@@ -15,9 +29,13 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     //↑でエラーなら↓に変更
     //copy($upfile, $dest);
     $upfile_name = CleanStr($upfile_name);
-    if(!is_file($dest)) error("アップロードに失敗しました<br>サーバがサポートしていない可能性があります",$dest);
+    if(!is_file($dest)){
+      error("アップロードに失敗しました<br>サーバがサポートしていない可能性があります",$dest);
+    }
     $size = getimagesize($dest);
-    if(!is_array($size)) error("アップロードに失敗しました<br>画像ファイル以外は受け付けません",$dest);
+    if(!is_array($size)){
+      error("アップロードに失敗しました<br>画像ファイル以外は受け付けません",$dest);
+    }
     $chk = md5_of_file($dest);
     foreach($badfile as $value){if(preg_match("/^$value/",$chk) === 1){
       error("アップロードに失敗しました<br>同じ画像がありました",$dest); //拒絶画像
@@ -57,32 +75,58 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
       error("拒絶されました(str)",$dest);
     };
   }
-  if($_SERVER["REQUEST_METHOD"] != "POST") error("不正な投稿をしないで下さい(post)",$dest);
+  if($_SERVER["REQUEST_METHOD"] != "POST"){
+    error("不正な投稿をしないで下さい(post)",$dest);
+  }
   // フォーム内容をチェック
-  if(!$name||preg_match("/^[ |　|]*$/",$name) === 1) $name="";
-  if(!$com||preg_match("/^[ |　|\t]*$/",$com) === 1) $com="";
-  if(!$sub||preg_match("/^[ |　|]*$/",$sub) === 1)   $sub=""; 
+  if(!$name||preg_match("/^[ |　|]*$/",$name) === 1){
+    $name="";
+  }
+  if(!$com||preg_match("/^[ |　|\t]*$/",$com) === 1){
+    $com="";
+  }
+  if(!$sub||preg_match("/^[ |　|]*$/",$sub) === 1){
+    $sub=""; 
+  }
 
-  if(!$resto&&!$textonly&&!is_file($dest)) error("画像がありません",$dest);
-  if(!$com&&!is_file($dest)) error("何か書いて下さい",$dest);
+  if(!$resto&&!$textonly&&!is_file($dest)){
+    error("画像がありません",$dest);
+  }
+  if(!$com&&!is_file($dest)){
+    error("何か書いて下さい",$dest);
+  }
 
   $name=preg_replace("/管理/","\"管理\"",$name);
   $name=preg_replace("/削除/","\"削除\"",$name);
 
-  if(strlen($com) > 1000) error("本文が長すぎますっ！",$dest);
-  if(strlen($name) > 100) error("本文が長すぎますっ！",$dest);
-  if(strlen($email) > 100) error("本文が長すぎますっ！",$dest);
-  if(strlen($sub) > 100) error("本文が長すぎますっ！",$dest);
-  if(strlen($resto) > 10) error("異常です",$dest);
-  if(strlen($url) > 10) error("異常です",$dest);
+  if(strlen($com) > 1000){
+    error("本文が長すぎますっ！",$dest);
+  }
+  if(strlen($name) > 100){
+    error("本文が長すぎますっ！",$dest);
+  }
+  if(strlen($email) > 100){
+    error("本文が長すぎますっ！",$dest);
+  }
+  if(strlen($sub) > 100){
+    error("本文が長すぎますっ！",$dest);
+  }
+  if(strlen($resto) > 10){
+    error("異常です",$dest);
+  }
+  if(strlen($url) > 10){
+    error("異常です",$dest);
+  }
 
   //ホスト取得
   $host = gethostbyaddr($_SERVER["REMOTE_ADDR"]);
 
   foreach($badip as $value){ //拒絶host
-   if(preg_match("/$value$/i",$host)){
-    error("拒絶されました(host)",$dest);
-  }}
+    if(preg_match("/$value$/i",$host)){
+     error("拒絶されました(host)",$dest);
+    }
+  }
+
   if(preg_match("/^mail/i",$host)
     || preg_match("/^ns/i",$host)
     || preg_match("/^dns/i",$host)
@@ -92,6 +136,7 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     || preg_match("/^[^\.]\.[^\.]$/i",$host)){
     $pxck = "on";
   }
+
   if(preg_match("/ne\\.jp$/i",$host)||
     preg_match("/ad\\.jp$/i",$host)||
     preg_match("/bbtec\\.net$/i",$host)||
@@ -99,8 +144,12 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     preg_match("/uu\\.net$/i",$host)||
     preg_match("/asahi-net\\.or\\.jp$/i",$host)||
     preg_match("/rim\\.or\\.jp$/i",$host)
-    ){$pxck = "off";}
-  else{$pxck = "on";}
+    ){
+    $pxck = "off";
+  }
+  else{
+    $pxck = "on";
+  }
 
   if($pxck=="on" && PROXY_CHECK){
     if(proxy_connect('80') == 1){
@@ -124,7 +173,12 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   $pass = ($pwd) ? substr(md5($pwd),2,8) : "*";
   $youbi = array('日','月','火','水','木','金','土');
   $yd = $youbi[gmdate("w", $time+9*60*60)] ;
-  $now = gmdate("y/m/d",$time+9*60*60)."(".(string)$yd.")".gmdate("H:i",$time+9*60*60);
+  $now = (
+    gmdate("y/m/d",$time+9*60*60) . 
+    "(" .(string)$yd . ")" . 
+    gmdate("H:i",$time+9*60*60)
+  );
+
   if(DISP_ID){
     if($email&&DISP_ID==1){
       $now .= " ID:???";
@@ -133,10 +187,14 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     }
   }
   //テキスト整形
-  $email= CleanStr($email);  $email=preg_replace("/[\r\n]/","",$email);
-  $sub  = CleanStr($sub);    $sub  =preg_replace("/[\r\n]/","",$sub);
-  $url  = CleanStr($url);    $url  =preg_replace("/[\r\n]/","",$url);
-  $resto= CleanStr($resto);  $resto=preg_replace("/[\r\n]/","",$resto);
+  $email= CleanStr($email);  
+  $email= preg_replace("/[\r\n]/","",$email);
+  $sub  = CleanStr($sub);    
+  $sub  = preg_replace("/[\r\n]/","",$sub);
+  $url  = CleanStr($url);    
+  $url  = preg_replace("/[\r\n]/","",$url);
+  $resto= CleanStr($resto);  
+  $resto= preg_replace("/[\r\n]/","",$resto);
   $com  = CleanStr($com);
   // 改行文字の統一。 
   $com = str_replace( "\r\n",  "\n", $com); 
@@ -163,16 +221,24 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     $name.="</b>◆".substr(crypt($cap,$salt),-10)."<b>";
   }
 
-  if(!$name) $name="名無し";
-  if(!$com) $com="本文なし";
-  if(!$sub) $sub="無題"; 
+  if(!$name){
+    $name="名無し";
+  }
+  if(!$com){
+    $com="本文なし";
+  }
+  if(!$sub){
+    $sub="無題"; 
+  }
 
   //ログ読み込み
   $fp=fopen(LOGFILE,"r+");
   flock($fp, 2);
   rewind($fp);
   $buf=fread($fp,1000000);
-  if($buf==''){error("error load log",$dest);}
+  if($buf==''){ 
+    error("error load log",$dest);
+  }
   $line = explode("\n",$buf);
   $countline=count($line);
   for($i = 0; $i < $countline; $i++){
@@ -180,28 +246,45 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
       list($artno,)=explode(",", rtrim($line[$i]));  //逆変換テーブル作成
       $lineindex[$artno]=$i+1;
       $line[$i].="\n";
-  }}
+    }
+  }
 
   // 二重投稿チェック
   $imax=count($line)>20 ? 20 : count($line)-1;
   for($i=0;$i<$imax;$i++){
-   list($lastno,,$lname,,,$lcom,,$lhost,$lpwd,,,,$ltime,) = explode(",", $line[$i]);
-   if(strlen($ltime)>10){$ltime=substr($ltime,0,-3);}
-   if($host==$lhost||substr(md5($pwd),2,8)==$lpwd||substr(md5($pwdc),2,8)==$lpwd){$pchk=1;}else{$pchk=0;}
-   if(RENZOKU && $pchk && $time - $ltime < RENZOKU)
-    error("連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
-   if(RENZOKU && $pchk && $time - $ltime < RENZOKU2 && $upfile_name)
-    error("画像連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
-   if(RENZOKU && $pchk && $com == $lcom && !$upfile_name)
-    error("連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
+    list($lastno,,$lname,,,$lcom,,$lhost,$lpwd,,,,$ltime,) = explode(",", $line[$i]);
+    if(strlen($ltime)>10){
+      $ltime=substr($ltime,0,-3);
+    }
+    if($host==$lhost||substr(md5($pwd),2,8)==$lpwd||substr(md5($pwdc),2,8)==$lpwd){
+      $pchk=1;
+    }
+    else{
+      $pchk=0;
+    }
+
+    if(RENZOKU && $pchk && $time - $ltime < RENZOKU){
+      error("連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
+    }
+
+    if(RENZOKU && $pchk && $time - $ltime < RENZOKU2 && $upfile_name){
+      error("画像連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
+    }
+    if(RENZOKU && $pchk && $com == $lcom && !$upfile_name){
+      error("連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
+    }
   }
 
   // ログ行数オーバー
   if(count($line) >= LOG_MAX){
     for($d = count($line)-1; $d >= LOG_MAX-1; $d--){
       list($dno,,,,,,,,,$dext,,,$dtime,) = explode(",", $line[$d]);
-      if(is_file($path.$dtime.$dext)) unlink($path.$dtime.$dext);
-      if(is_file(THUMB_DIR.$dtime.'s.jpg')) unlink(THUMB_DIR.$dtime.'s.jpg');
+      if(is_file($path.$dtime.$dext)){
+        unlink($path.$dtime.$dext);
+      }
+      if(is_file(THUMB_DIR.$dtime.'s.jpg')){
+        unlink(THUMB_DIR.$dtime.'s.jpg');
+      }
       $line[$d] = "";
       treedel($dno);
     }
@@ -209,11 +292,13 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   // アップロード処理
   if($dest&&file_exists($dest)){
     $imax=count($line)>200 ? 200 : count($line)-1;
+
     for($i=0;$i<$imax;$i++){ //画像重複チェック
-     list(,,,,,,,,,$extp,,,$timep,$chkp,) = explode(",", $line[$i]);
-     if($chkp==$chk&&file_exists($path.$timep.$extp)){
-      error("アップロードに失敗しました<br>同じ画像があります",$dest);
-    }}
+      list(,,,,,,,,,$extp,,,$timep,$chkp,) = explode(",", $line[$i]);
+      if($chkp==$chk&&file_exists($path.$timep.$extp)){
+        error("アップロードに失敗しました<br>同じ画像があります",$dest);
+      }
+    }
   }
   list($lastno,) = explode(",", $line[0]);
   $no = $lastno + 1;
@@ -244,7 +329,9 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
       $j=explode(",", rtrim($line[$i]));
       if($lineindex[$j[0]]==0){
         $line[$i]='';
-  } } }
+      } 
+    } 
+  }
   if($resto){
     for($i = 0; $i < $countline; $i++){
       $rtno = explode(",", rtrim($line[$i]));
@@ -252,14 +339,26 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
         $find = TRUE;
         $line[$i]=rtrim($line[$i]).','.$no."\n";
         $j=explode(",", rtrim($line[$i]));
-        if(count($j)>MAX_RES){$email='sage';}
+        if(count($j)>MAX_RES){
+          $email='sage';
+        }
         if(!stristr($email,'sage')){
           $newline=$line[$i];
           $line[$i]='';
         }
         break;
-  } } }
-  if(!$find){if(!$resto){$newline="$no\n";}else{error("スレッドがありません",$dest);}}
+      } 
+    } 
+  }
+
+  if(!$find){
+    if(!$resto){
+      $newline="$no\n";
+    }
+    else{
+      error("スレッドがありません",$dest);
+    }
+  }
   $newline.=implode('', $line);
   ftruncate($tp,0);
   set_file_buffer($tp, 0);
@@ -280,8 +379,11 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
         $c_name.="%u".bin2hex($j);
         $i++;
       }
-      header("Set-Cookie: namec=$c_name; expires=".gmdate("D, d-M-Y H:i:s",time()+7*24*3600)." GMT",false);
-    }else{
+      header(
+        "Set-Cookie: namec=$c_name; expires=".gmdate("D, d-M-Y H:i:s",time()+7*24*3600)." GMT",false
+      );
+    }
+    else{
       $c_name=$names;
       setcookie ("namec", $c_name,time()+7*24*3600);  /* 1週間で期限切れ */
     }
