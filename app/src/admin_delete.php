@@ -1,25 +1,48 @@
 <?php
-/* 管理者削除 */
+/**
+ * Administration of message log.
+ *
+ * @params string $pass administration password.
+ * @return void
+ */
 function admindel($pass){
   global $path,$onlyimgdel;
-  $all=0;$msg="";
+
+  $all=0;
+  $msg="";
   $delno = array("dummy");
-  $delflag = FALSE;
+  $delflag = false;
   reset($_POST);
+
   while ($item = each($_POST)){
-   if($item[1]=='delete'){array_push($delno,$item[0]);$delflag=TRUE;}
+    if($item[1] == 'delete'){
+      array_push($delno,$item[0]);
+      $delflag=true;
+    }
   }
+
   if($delflag){
-  $fp=fopen(LOGFILE,"r+");
-  set_file_buffer($fp, 0);
-  flock($fp, 2);
-  rewind($fp);
-  $buf=fread($fp,1000000);
-  if($buf==''){error("error admin del");}
-  $line = explode("\n",$buf);
-  $countline=count($line)-1;
-  for($i = 0; $i < $countline; $i++){if($line[$i]!=""){$line[$i].="\n";};}
-    $find = FALSE;
+    $fp = fopen(LOGFILE,"r+");
+    set_file_buffer($fp, 0);
+    flock($fp, 2);
+    rewind($fp);
+    $buf = fread($fp,1000000);
+ 
+    if($buf==''){
+      error("error admin del");
+    }
+
+    $line = explode("\n",$buf);
+    $countline=count($line)-1;
+  
+    for($i = 0; $i < $countline; $i++){
+      if($line[$i]!=""){
+        $line[$i].="\n";
+      }
+    }
+
+    $find = false;
+
     for($i = 0; $i < $countline; $i++){
       list($no,$now,$name,$email,$sub,$com,$url,$host,$pw,$ext,$w,$h,$tim,$chk) = explode(",",$line[$i]);
       if($onlyimgdel=="on"){
@@ -28,17 +51,23 @@ function admindel($pass){
           if(is_file($delfile)) unlink($delfile);//削除
           if(is_file(THUMB_DIR.$tim.'s.jpg')) unlink(THUMB_DIR.$tim.'s.jpg');//削除
         }
-      }else{
+      }
+      else{
         if(array_search($no,$delno)){//削除の時は空に
-          $find = TRUE;
+          $find = true;
           $line[$i] = "";
           $delfile = $path.$tim.$ext;	//削除ファイル
-          if(is_file($delfile)) unlink($delfile);//削除
-          if(is_file(THUMB_DIR.$tim.'s.jpg')) unlink(THUMB_DIR.$tim.'s.jpg');//削除
+          if(is_file($delfile)){
+            unlink($delfile);//削除
+          }
+          if(is_file(THUMB_DIR.$tim.'s.jpg')){
+            unlink(THUMB_DIR.$tim.'s.jpg');//削除
+          }
           treedel($no);
         }
       }
     }
+
     if($find){//ログ更新
       ftruncate($fp,0);
       set_file_buffer($fp, 0);
@@ -47,6 +76,7 @@ function admindel($pass){
     }
     fclose($fp);
   }
+
   // 削除画面を表示
   echo "<input type=hidden name=mode value=admin>\n";
   echo "<input type=hidden name=admin value=del>\n";
@@ -62,21 +92,33 @@ function admindel($pass){
   $line = file(LOGFILE);
 
   for($j = 0; $j < count($line); $j++){
-    $img_flag = FALSE;
+    $img_flag = false;
     list($no,$now,$name,$email,$sub,$com,$url,
          $host,$pw,$ext,$w,$h,$time,$chk) = explode(",",$line[$j]);
     // フォーマット
     $now=preg_replace('/.{2}\/(.*)$/','\1',$now);
     $now=preg_replace('/\(.*\)/',' ',$now);
-    if(strlen($name) > 10) $name = substr($name,0,9).".";
-    if(strlen($sub) > 10) $sub = substr($sub,0,9).".";
-    if($email) $name="<a href=\"mailto:$email\">$name</a>";
+
+    if(strlen($name) > 10){
+      $name = substr($name,0,9).".";
+    }
+    if(strlen($sub) > 10){
+      $sub = substr($sub,0,9).".";
+    }
+    if($email){ 
+      $name="<a href=\"mailto:$email\">$name</a>";
+    }
+
     $com = str_replace("<br />"," ",$com);
     $com = htmlspecialchars($com);
-    if(strlen($com) > 20) $com = substr($com,0,18) . ".";
+
+    if(strlen($com) > 20){
+      $com = substr($com,0,18) . ".";
+    }
+
     // 画像があるときはリンク
     if($ext && is_file($path.$time.$ext)){
-      $img_flag = TRUE;
+      $img_flag = true;
       $clip = "<a href=\"".IMG_DIR.$time.$ext."\" target=_blank>".$time.$ext."</a><br>";
       $size = filesize($path.$time.$ext);
       $all += $size;			//合計計算
