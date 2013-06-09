@@ -1,7 +1,15 @@
 <?php
-/* パス認証 */
+/**
+ * Validatio of password. 
+ * ...And rendering form.
+ *
+ * @params string $pass password.
+ * @return void
+ */
 function valid($pass){
-  if($pass && $pass != ADMIN_PASS) error("パスワードが違います");
+  if($pass && $pass != ADMIN_PASS){
+    error("パスワードが違います");
+  }
 
   head($dat);
   echo $dat;
@@ -11,6 +19,7 @@ function valid($pass){
   echo "<font color=#FFFFFF>管理モード</font>\n";
   echo "</th></tr></table>\n";
   echo "<p><form action=\"".PHP_SELF."\" method=POST>\n";
+
   // ログインフォーム
   if(!$pass){
     echo "<center><input type=radio name=admin value=del checked>記事削除 ";
