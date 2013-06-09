@@ -1,0 +1,9 @@
+{
+  "engines": {
+    "node": ">= 10.0.7"
+  },
+  "dependencies": {
+    "grunt": "",
+    "grunt-contrib-concat": ">= 0.3.0"
+  }
+}
