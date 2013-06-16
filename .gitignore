@@ -1,6 +1,10 @@
 .DS_Store
 *.html
 *.log
+*.swp
+*.swo
 src/*
 thumb/*
+app/dest/src/*
+app/dest/thumb/*
 node_modules

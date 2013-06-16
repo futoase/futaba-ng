@@ -6,7 +6,17 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     concat: {
-      dist: {
+      models: {
+        src: [
+          'src/model/image_file.php',
+          'src/model/upload_file.php' 
+        ],
+        dest: 'dest/models.php'
+      },
+      futaba: {
+        options: {
+          banner: "<?php require('models.php'); ?>\n",
+        },
         src: [
           'src/setting.php',
           'src/form.php',
@@ -15,6 +25,7 @@ module.exports = function(grunt) {
           'src/auto_link.php',
           'src/error.php',
           'src/proxy_connect.php',
+          'src/thumbnail.php',
           'src/regist.php',
           'src/get_gd_ver.php',
           'src/md5_of_file.php',

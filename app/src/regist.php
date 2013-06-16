@@ -1,5 +1,4 @@
 <?php
-/* 記事書き込み */
 /**
  * Publish to futaba borad.
  *
@@ -24,7 +23,7 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
 
   // アップロード処理
   if($upfile&&file_exists($upfile)){
-    $dest = $path.$tim.'.tmp';
+    $dest = ImageFile::getNew()->createTempFileName($path, $tim);
     move_uploaded_file($upfile, $dest);
     //↑でエラーなら↓に変更
     //copy($upfile, $dest);
