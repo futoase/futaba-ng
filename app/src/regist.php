@@ -35,10 +35,11 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     if(!is_array($size)){
       error("アップロードに失敗しました<br>画像ファイル以外は受け付けません",$dest);
     }
-    $chk = md5_of_file($dest);
-    foreach($badfile as $value){if(preg_match("/^$value/",$chk) === 1){
-      error("アップロードに失敗しました<br>同じ画像がありました",$dest); //拒絶画像
-    }}
+    $is_uploaded = ImageFile::getNew()->isUploaded($badfile, $dest);
+    if ($is_uploaded === true) {
+      error("アップロードに失敗しました<br>同じ画像がありました", $dest); //拒絶画像
+      return;
+    }
     chmod($dest,0666);
     $W = $size[0];
     $H = $size[1];
@@ -256,20 +257,20 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
       $ltime=substr($ltime,0,-3);
     }
     if($host==$lhost||substr(md5($pwd),2,8)==$lpwd||substr(md5($pwdc),2,8)==$lpwd){
-      $pchk=1;
+      $p=1;
     }
     else{
-      $pchk=0;
+      $p=0;
     }
 
-    if(RENZOKU && $pchk && $time - $ltime < RENZOKU){
+    if(RENZOKU && $p && $time - $ltime < RENZOKU){
       error("連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
     }
 
-    if(RENZOKU && $pchk && $time - $ltime < RENZOKU2 && $upfile_name){
+    if(RENZOKU && $p && $time - $ltime < RENZOKU2 && $upfile_name){
       error("画像連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
     }
-    if(RENZOKU && $pchk && $com == $lcom && !$upfile_name){
+    if(RENZOKU && $p && $com == $lcom && !$upfile_name){
       error("連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
     }
   }
@@ -293,8 +294,8 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     $imax=count($line)>200 ? 200 : count($line)-1;
 
     for($i=0;$i<$imax;$i++){ //画像重複チェック
-      list(,,,,,,,,,$extp,,,$timep,$chkp,) = explode(",", $line[$i]);
-      if($chkp==$chk&&file_exists($path.$timep.$extp)){
+      list(,,,,,,,,,$extp,,,$timep,$p,) = explode(",", $line[$i]);
+      if($p==$is_uploaded&&file_exists($path.$timep.$extp)){
         error("アップロードに失敗しました<br>同じ画像があります",$dest);
       }
     }
@@ -305,7 +306,7 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   isset($W)?0:$W="";
   isset($H)?0:$H="";
   isset($chk)?0:$chk="";
-  $newline = "$no,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk,\n";
+  $newline = "$no,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$,\n";
   $newline.= implode('', $line);
   ftruncate($fp,0);
   set_file_buffer($fp, 0);
