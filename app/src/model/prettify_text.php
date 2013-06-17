@@ -81,15 +81,15 @@ class PrettifyText {
     else {
       $comment = self::replaceSpecialString($comment);
     }
-    $commentment = str_replace( "\r\n",  "\n", $comment); 
-    $commentment = str_replace( "\r",  "\n", $comment);
+    $comment = str_replace( "\r\n",  "\n", $comment); 
+    $comment = str_replace( "\r",  "\n", $comment);
     // 連続する空行を一行
-    $commentment = preg_replace("/\n((　| )*\n){3,}/","\n",$comment);
-    if(!BR_CHECK || substr_count($commentment,"\n")<BR_CHECK){
-      $commentment = nl2br($comment);		//改行文字の前に<br>を代入する
+    $comment = preg_replace("/\n((　| )*\n){3,}/","\n",$comment);
+    if(!BR_CHECK || substr_count($comment,"\n")<BR_CHECK){
+      $comment = nl2br($comment);		//改行文字の前に<br>を代入する
     }
-    $commentment = str_replace("\n",  "", $comment);	//\nを文字列から消す。
-    return $commentment;
+    $comment = str_replace("\n",  "", $comment);	//\nを文字列から消す。
+    return $comment;
   }
 
   /**
@@ -101,14 +101,15 @@ class PrettifyText {
   public static function replaceStringOfName($name) {
     $name = preg_replace("/◆/","◇",$name);
     $name = preg_replace("/[\r\n]/","",$name);
-    $names = $name;
+
     if (self::isAdmin()) {
       $name = self::replaceSpecialStringOfAdmin($name);
     }
     else {
       $name = self::replaceSpecialString($name);
     }
-    if(preg_match("/(#|＃)(.*)/",$names,$regs) === 1){
+
+    if(preg_match("/(#|＃)(.*)/", $name, $regs) === 1) {
       $cap = $regs[2];
       $cap = strtr($cap, "&amp;", "&");
       $cap = strtr($cap, "&#44;", ",");
@@ -118,6 +119,7 @@ class PrettifyText {
       $salt = strtr($salt, ":;<=>?@[\\]^_`", "ABCDEFGabcdef"); 
       $name .= "</b>◆" . substr(crypt($cap,$salt),-10) . "<b>";
     }
+
     return $name;
   }
 
