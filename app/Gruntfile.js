@@ -9,7 +9,8 @@ module.exports = function(grunt) {
       models: {
         src: [
           'src/model/image_file.php',
-          'src/model/upload_file.php' 
+          'src/model/upload_file.php',
+          'src/model/prettify_text.php'
         ],
         dest: 'dest/models.php'
       },

@@ -699,40 +699,14 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
       $now.=" ID:".substr(crypt(md5($_SERVER["REMOTE_ADDR"].IDSEED.gmdate("Ymd", $time+9*60*60)),'id'),-8);
     }
   }
-  //テキスト整形
-  $email= CleanStr($email);  
-  $email= preg_replace("/[\r\n]/","",$email);
-  $sub  = CleanStr($sub);    
-  $sub  = preg_replace("/[\r\n]/","",$sub);
-  $url  = CleanStr($url);    
-  $url  = preg_replace("/[\r\n]/","",$url);
-  $resto= CleanStr($resto);  
-  $resto= preg_replace("/[\r\n]/","",$resto);
-  $com  = CleanStr($com);
-  // 改行文字の統一。 
-  $com = str_replace( "\r\n",  "\n", $com); 
-  $com = str_replace( "\r",  "\n", $com);
-  // 連続する空行を一行
-  $com = preg_replace("/\n((　| )*\n){3,}/","\n",$com);
-  if(!BR_CHECK || substr_count($com,"\n")<BR_CHECK){
-    $com = nl2br($com);		//改行文字の前に<br>を代入する
-  }
-  $com = str_replace("\n",  "", $com);	//\nを文字列から消す。
 
-  $name=preg_replace("/◆/","◇",$name);
-  $name=preg_replace("/[\r\n]/","",$name);
-  $names=$name;
-  $name = CleanStr($name);
-  if(preg_match("/(#|＃)(.*)/",$names,$regs) === 1){
-    $cap = $regs[2];
-    $cap=strtr($cap,"&amp;", "&");
-    $cap=strtr($cap,"&#44;", ",");
-    $name=preg_replace("(#|＃)(.*)","",$name);
-    $salt=substr($cap."H.",1,2);
-    $salt=preg_replace("[^\.-z]",".",$salt);
-    $salt=strtr($salt,":;<=>?@[\\]^_`","ABCDEFGabcdef"); 
-    $name.="</b>◆".substr(crypt($cap,$salt),-10)."<b>";
-  }
+  $email = PrettifyText::replaceStringOfMail($email);
+  $sub   = PrettifyText::replaceStringOfSubject($sub);
+  $url   = PrettifyText::replaceStringOfUrl($url);
+  $resto = PrettifyText::replaceStringOfResNumber($resto);
+  $com   = PrettifyText::replaceStringOfComment($com);
+  $name  = PrettifyText::replaceStringOfName($name);
+  $names = $name;
 
   if(!$name){
     $name="名無し";
