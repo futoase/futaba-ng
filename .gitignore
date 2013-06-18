@@ -3,6 +3,7 @@
 *.log
 *.swp
 *.swo
+app/src/test_src/tests/_log/*
 src/*
 thumb/*
 app/dest/src/*

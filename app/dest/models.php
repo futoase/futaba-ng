@@ -81,10 +81,59 @@ trait uploadFile {
 ?>
 
 <?php
+
+trait Trip {
+  /**
+   * build processing result of trip signature.
+   *
+   * @params string $trip_signature trip signature.
+   * @return string trip signature.
+   */
+  public static function buildTrip($trip_signature) {
+    $cap = $trip_signature;
+    $cap = strtr($cap, "&amp;", "&");
+    $cap = strtr($cap, "&#44;", ",");
+    $salt = substr($cap . "H.", 1, 2);
+    $salt = preg_replace("/[^\.-z]/", "." ,$salt);
+    $salt = strtr($salt, ":;<=>?@[\\]^_`", "ABCDEFGabcdef"); 
+    return substr(crypt($cap,$salt),-10);
+  }
+
+  /**
+   * get Trip signature in username.
+   *
+   * @params string $user_name user name.
+   * @return string Yes, is in. (trip signature)
+   *         false No, isn't in. 
+   */
+  public static function getTripSignatureInUsername($user_name) {
+    if (preg_match("/(#|＃)(.*)/", $user_name, $regs) === 1) {
+      return $regs[2];
+    }
+    else {
+      return false;
+    }
+  }
+
+  /**
+   * Remove trip signature of username.
+   *
+   * @params string $user_name user name.
+   * @return string Deleted username in trip signature.
+   */
+  public static function removeTripSignature($user_name) {
+    return preg_replace("/(#|＃)(.*)/", "", $user_name);
+  }
+}
+
+?>
+
+<?php
 /**
  * Prettify text
  */
 class PrettifyText {
+  use Trip;
 
   /**
    * replace string of mail address.
@@ -163,15 +212,15 @@ class PrettifyText {
     else {
       $comment = self::replaceSpecialString($comment);
     }
-    $commentment = str_replace( "\r\n",  "\n", $comment); 
-    $commentment = str_replace( "\r",  "\n", $comment);
+    $comment = str_replace( "\r\n",  "\n", $comment); 
+    $comment = str_replace( "\r",  "\n", $comment);
     // 連続する空行を一行
-    $commentment = preg_replace("/\n((　| )*\n){3,}/","\n",$comment);
-    if(!BR_CHECK || substr_count($commentment,"\n")<BR_CHECK){
-      $commentment = nl2br($comment);		//改行文字の前に<br>を代入する
+    $comment = preg_replace("/\n((　| )*\n){3,}/","\n",$comment);
+    if(!BR_CHECK || substr_count($comment,"\n")<BR_CHECK){
+      $comment = nl2br($comment);		//改行文字の前に<br>を代入する
     }
-    $commentment = str_replace("\n",  "", $comment);	//\nを文字列から消す。
-    return $commentment;
+    $comment = str_replace("\n",  "", $comment);	//\nを文字列から消す。
+    return $comment;
   }
 
   /**
@@ -183,23 +232,21 @@ class PrettifyText {
   public static function replaceStringOfName($name) {
     $name = preg_replace("/◆/","◇",$name);
     $name = preg_replace("/[\r\n]/","",$name);
-    $names = $name;
+
     if (self::isAdmin()) {
       $name = self::replaceSpecialStringOfAdmin($name);
     }
     else {
       $name = self::replaceSpecialString($name);
     }
-    if(preg_match("/(#|＃)(.*)/",$names,$regs) === 1){
-      $cap = $regs[2];
-      $cap = strtr($cap, "&amp;", "&");
-      $cap = strtr($cap, "&#44;", ",");
-      $name = preg_replace("/(#|＃)(.*)/", "", $name);
-      $salt = substr($cap . "H.", 1, 2);
-      $salt = preg_replace("/[^\.-z]/", "." ,$salt);
-      $salt = strtr($salt, ":;<=>?@[\\]^_`", "ABCDEFGabcdef"); 
-      $name .= "</b>◆" . substr(crypt($cap,$salt),-10) . "<b>";
-    }
+
+    $trip_signature = self::getTripSignatureInUsername($name);
+    if ($trip_signature !== false) {
+      $trip = self::buildTrip($trip_signature);
+      $name = self::removeTripSignature($name);
+      $name .= '</b>◆' . $trip . "<b>";
+    } 
+
     return $name;
   }
 

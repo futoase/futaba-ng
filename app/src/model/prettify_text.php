@@ -3,6 +3,7 @@
  * Prettify text
  */
 class PrettifyText {
+  use Trip;
 
   /**
    * replace string of mail address.
@@ -109,16 +110,12 @@ class PrettifyText {
       $name = self::replaceSpecialString($name);
     }
 
-    if(preg_match("/(#|＃)(.*)/", $name, $regs) === 1) {
-      $cap = $regs[2];
-      $cap = strtr($cap, "&amp;", "&");
-      $cap = strtr($cap, "&#44;", ",");
-      $name = preg_replace("/(#|＃)(.*)/", "", $name);
-      $salt = substr($cap . "H.", 1, 2);
-      $salt = preg_replace("/[^\.-z]/", "." ,$salt);
-      $salt = strtr($salt, ":;<=>?@[\\]^_`", "ABCDEFGabcdef"); 
-      $name .= "</b>◆" . substr(crypt($cap,$salt),-10) . "<b>";
-    }
+    $trip_signature = self::getTripSignatureInUsername($name);
+    if ($trip_signature !== false) {
+      $trip = self::buildTrip($trip_signature);
+      $name = self::removeTripSignature($name);
+      $name .= '</b>◆' . $trip . "<b>";
+    } 
 
     return $name;
   }

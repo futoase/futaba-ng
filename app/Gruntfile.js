@@ -1,8 +1,10 @@
 'use strict';
 
+var path = require('path');
+
 module.exports = function(grunt) {
-  
-  grunt.loadNpmTasks('grunt-contrib-concat');
+
+  var CURRENT_PATH = path.normalize(path.dirname(__filename));
 
   grunt.initConfig({
     concat: {
@@ -10,6 +12,7 @@ module.exports = function(grunt) {
         src: [
           'src/model/image_file.php',
           'src/model/upload_file.php',
+          'src/model/trip.php',
           'src/model/prettify_text.php'
         ],
         dest: 'dest/models.php'
@@ -42,6 +45,32 @@ module.exports = function(grunt) {
         ],
         dest: 'dest/futaba.php'
       }
+    },
+    shell: {
+      phpRunning: {
+        command: [
+          'cd ' + CURRENT_PATH + '/dest',
+          'php -S localhost:3000 -t .'
+        ].join('&&'), 
+        options: {
+          stderr: true,
+          stdout: true
+        }
+      },
+      unitTest: {
+        command: [
+          'cd ' + CURRENT_PATH + '/src/test_src',
+          'php codecept.phar run unit'
+        ].join('&&'),
+        options: {
+          stderr: true,
+          stdout: true
+        } 
+      }
     }
   });
+
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-shell');
+
 };
