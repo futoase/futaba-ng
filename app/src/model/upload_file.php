@@ -38,20 +38,20 @@ trait uploadFile {
    *         false Is error.
    */
   private static function md5HashOfFile($file_path) {
-   if (file_exists($file_path)){
-     if(function_exists('md5_file')){
-       return md5_file($file_path);
-     }
-     else{
-       $fd = fopen($file_path, 'r');
-       $fileContents = fread($fd, filesize($file_path));
-       fclose ($fd);
-       return md5($fileContents);
-     }
-   }
-   else{
-     return false;
-   }
+    if (file_exists($file_path)){
+      if(function_exists('md5_file')){
+        return md5_file($file_path);
+      }
+      else{
+        $fd = fopen($file_path, 'r');
+        $fileContents = fread($fd, filesize($file_path));
+        fclose ($fd);
+        return md5($fileContents);
+      }
+    }
+    else{
+      return false;
+    }
   }
 }
 ?>
