@@ -8,18 +8,27 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     concat: {
+      repositories: {
+        src: [
+          'src/repository/extension.php'
+        ], 
+        dest: 'dest/repositories.php'
+      },
       models: {
         src: [
           'src/model/image_file.php',
           'src/model/upload_file.php',
           'src/model/trip.php',
-          'src/model/prettify_text.php'
+          'src/model/prettify_text.php',
         ],
         dest: 'dest/models.php'
       },
       futaba: {
         options: {
-          banner: "<?php require('models.php'); ?>\n",
+          banner: [
+            "<?php require('repositories.php'); ?>\n",
+            "<?php require('models.php'); ?>\n"
+          ].join("")
         },
         src: [
           'src/setting.php',

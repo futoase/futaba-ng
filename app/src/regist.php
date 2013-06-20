@@ -45,9 +45,6 @@ function regist($name,$email,$sub,$comment,$url,$pwd,$upfile,$upfile_name,$resto
     $H = $size[1];
 
     $extension = ExtensionRepository::find($size[2]);
-    if ($extension === false) {
-      error("対応しないフォーマットです。",$dest);
-    }
 
     // 画像表示縮小
     if($W > MAX_W || $H > MAX_H){
@@ -76,7 +73,7 @@ function regist($name,$email,$sub,$comment,$url,$pwd,$upfile,$upfile_name,$resto
   if(!$name||preg_match("/^[ |　|]*$/",$name) === 1){
     $name="";
   }
-  if(!$comment||preg_match("/^[ |　|\t]*$/",$com) === 1){
+  if(!$comment||preg_match("/^[ |　|\t]*$/",$comment) === 1){
     $comment="";
   }
   if(!$sub||preg_match("/^[ |　|]*$/",$sub) === 1){
@@ -185,7 +182,7 @@ function regist($name,$email,$sub,$comment,$url,$pwd,$upfile,$upfile_name,$resto
   $sub   = PrettifyText::replaceStringOfSubject($sub);
   $url   = PrettifyText::replaceStringOfUrl($url);
   $resto = PrettifyText::replaceStringOfResNumber($resto);
-  $comment   = PrettifyText::replaceStringOfComment($com);
+  $comment = PrettifyText::replaceStringOfComment($comment);
   $name  = PrettifyText::replaceStringOfName($name);
   $names = $name;
 
@@ -262,8 +259,8 @@ function regist($name,$email,$sub,$comment,$url,$pwd,$upfile,$upfile_name,$resto
     $imax=count($line)>200 ? 200 : count($line)-1;
 
     for($i=0;$i<$imax;$i++){ //画像重複チェック
-      list(,,,,,,,,,$extensionp,,,$timep,$p,) = explode(",", $line[$i]);
-      if($p==$is_uploaded&&file_exists($path.$timep.$extensionp)){
+      list(,,,,,,,,,$extension,,,$timep,$p,) = explode(",", $line[$i]);
+      if($p==$is_uploaded&&file_exists($path.$timep.$extension)){
         error("アップロードに失敗しました<br>同じ画像があります",$dest);
       }
     }

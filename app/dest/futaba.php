@@ -1,3 +1,4 @@
+<?php require('repositories.php'); ?>
 <?php require('models.php'); ?>
 <?php
 extract($_POST,EXTR_SKIP);
@@ -518,7 +519,7 @@ function thumb($path,$tim,$ext){
  * @params string $name user name.
  * @params string $email user email address.
  * @params string $sub subject.
- * @params string $com user comment.
+ * @params string $comment user comment.
  * @params string $url 
  * @params string $pwd user password.
  * @params string $upfile upload file path.
@@ -526,7 +527,7 @@ function thumb($path,$tim,$ext){
  * @params string $resto thread target number.
  * @return void
  */
-function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
+function regist($name,$email,$sub,$comment,$url,$pwd,$upfile,$upfile_name,$resto){
   global $path,$badstring,$badfile,$badip,$pwdc,$textonly;
   $dest="";$mes="";
 
@@ -557,16 +558,7 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     $W = $size[0];
     $H = $size[1];
 
-    switch ($size[2]) {
-      case 1 : $ext=".gif";break;
-      case 2 : $ext=".jpg";break;
-      case 3 : $ext=".png";break;
-      case 4 : $ext=".swf";break;
-      case 5 : $ext=".psd";break;
-      case 6 : $ext=".bmp";break;
-      case 13 : $ext=".swf";break;
-      default : $ext=".xxx";error("対応しないフォーマットです。",$dest);
-    }
+    $extension = ExtensionRepository::find($size[2]);
 
     // 画像表示縮小
     if($W > MAX_W || $H > MAX_H){
@@ -581,7 +573,7 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
 
   foreach($badstring as $value){
     $pattern = '/' . $value . '/';
-    if(preg_match($pattern, $com) === 1 || 
+    if(preg_match($pattern, $comment) === 1 || 
        preg_match($pattern, $sub) === 1 || 
        preg_match($pattern, $name) === 1 || 
        preg_match($pattern, $email) === 1 ){
@@ -595,8 +587,8 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   if(!$name||preg_match("/^[ |　|]*$/",$name) === 1){
     $name="";
   }
-  if(!$com||preg_match("/^[ |　|\t]*$/",$com) === 1){
-    $com="";
+  if(!$comment||preg_match("/^[ |　|\t]*$/",$comment) === 1){
+    $comment="";
   }
   if(!$sub||preg_match("/^[ |　|]*$/",$sub) === 1){
     $sub=""; 
@@ -605,14 +597,14 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   if(!$resto&&!$textonly&&!is_file($dest)){
     error("画像がありません",$dest);
   }
-  if(!$com&&!is_file($dest)){
+  if(!$comment&&!is_file($dest)){
     error("何か書いて下さい",$dest);
   }
 
   $name=preg_replace("/管理/","\"管理\"",$name);
   $name=preg_replace("/削除/","\"削除\"",$name);
 
-  if(strlen($com) > 1000){
+  if(strlen($comment) > 1000){
     error("本文が長すぎますっ！",$dest);
   }
   if(strlen($name) > 100){
@@ -704,15 +696,15 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   $sub   = PrettifyText::replaceStringOfSubject($sub);
   $url   = PrettifyText::replaceStringOfUrl($url);
   $resto = PrettifyText::replaceStringOfResNumber($resto);
-  $com   = PrettifyText::replaceStringOfComment($com);
+  $comment = PrettifyText::replaceStringOfComment($comment);
   $name  = PrettifyText::replaceStringOfName($name);
   $names = $name;
 
   if(!$name){
     $name="名無し";
   }
-  if(!$com){
-    $com="本文なし";
+  if(!$comment){
+    $comment="本文なし";
   }
   if(!$sub){
     $sub="無題"; 
@@ -757,7 +749,7 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     if(RENZOKU && $p && $time - $ltime < RENZOKU2 && $upfile_name){
       error("画像連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
     }
-    if(RENZOKU && $p && $com == $lcom && !$upfile_name){
+    if(RENZOKU && $p && $comment == $lcom && !$upfile_name){
       error("連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
     }
   }
@@ -781,19 +773,19 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     $imax=count($line)>200 ? 200 : count($line)-1;
 
     for($i=0;$i<$imax;$i++){ //画像重複チェック
-      list(,,,,,,,,,$extp,,,$timep,$p,) = explode(",", $line[$i]);
-      if($p==$is_uploaded&&file_exists($path.$timep.$extp)){
+      list(,,,,,,,,,$extension,,,$timep,$p,) = explode(",", $line[$i]);
+      if($p==$is_uploaded&&file_exists($path.$timep.$extension)){
         error("アップロードに失敗しました<br>同じ画像があります",$dest);
       }
     }
   }
   list($lastno,) = explode(",", $line[0]);
   $no = $lastno + 1;
-  isset($ext)?0:$ext="";
+  isset($extension)?0:$extension="";
   isset($W)?0:$W="";
   isset($H)?0:$H="";
   isset($chk)?0:$chk="";
-  $newline = "$no,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$,\n";
+  $newline = "$no,$now,$name,$email,$sub,$comment,$url,$host,$pass,$extension,$W,$H,$tim,$,\n";
   $newline.= implode('', $line);
   ftruncate($fp,0);
   set_file_buffer($fp, 0);
@@ -877,8 +869,8 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   }
 
   if($dest&&file_exists($dest)){
-    rename($dest,$path.$tim.$ext);
-    if(USE_THUMB){thumb($path,$tim,$ext);}
+    rename($dest,$path.$tim.$extension);
+    if(USE_THUMB){thumb($path,$tim,$extension);}
   }
   updatelog();
 
