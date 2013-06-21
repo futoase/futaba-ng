@@ -1,7 +1,6 @@
 <?php
 use Codeception\Util\Stub;
 
-require(dirname(__FILE__) . "/../../../setting.php");
 require(dirname(__FILE__) . "/../../../model/trip.php");
 require(dirname(__FILE__) . "/../../../model/prettify_text.php");
 

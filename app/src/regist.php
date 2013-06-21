@@ -41,19 +41,15 @@ function regist($name,$email,$sub,$comment,$url,$pwd,$upfile,$upfile_name,$resto
       return;
     }
     chmod($dest,0666);
-    $W = $size[0];
-    $H = $size[1];
-
+   
+    // size[0] is width, size[1] is height. 
+    $desired_size = ImageFile::adjustmentImageCanvasSize(
+      $size[0], $size[1]
+    );
+    $W = $desired_size['width'];
+    $H = $desired_size['height'];
     $extension = ExtensionRepository::find($size[2]);
 
-    // 画像表示縮小
-    if($W > MAX_W || $H > MAX_H){
-      $W2 = MAX_W / $W;
-      $H2 = MAX_H / $H;
-      ($W2 < $H2) ? $key = $W2 : $key = $H2;
-      $W = ceil($W * $key);
-      $H = ceil($H * $key);
-    }
     $mes = "画像 $upfile_name のアップロードが成功しました<br><br>";
   }
 
@@ -259,8 +255,8 @@ function regist($name,$email,$sub,$comment,$url,$pwd,$upfile,$upfile_name,$resto
     $imax=count($line)>200 ? 200 : count($line)-1;
 
     for($i=0;$i<$imax;$i++){ //画像重複チェック
-      list(,,,,,,,,,$extension,,,$timep,$p,) = explode(",", $line[$i]);
-      if($p==$is_uploaded&&file_exists($path.$timep.$extension)){
+      list(,,,,,,,,,$extensionp,,,$timep,$p,) = explode(",", $line[$i]);
+      if($p==$is_uploaded&&file_exists($path.$timep.$extensionp)){
         error("アップロードに失敗しました<br>同じ画像があります",$dest);
       }
     }

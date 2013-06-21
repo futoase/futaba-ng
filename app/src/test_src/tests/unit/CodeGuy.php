@@ -3,6 +3,8 @@
 // You can change it manually, but it will be overwritten on next build
 // @codingStandardsIgnoreFile
 
+require(dirname(__FILE__) . "/../../../setting.php");
+
 use Codeception\Maybe;
 use Codeception\Module\CodeHelper;
 

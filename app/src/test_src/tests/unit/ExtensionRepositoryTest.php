@@ -1,6 +1,6 @@
 <?php
+use Codeception\Util\Stub;
 
-require(dirname(__FILE__) . "/../../../setting.php");
 require(dirname(__FILE__) . "/../../../repository/extension.php");
 
 class ExtensionRepositoryTest extends \PHPUnit_Framework_TestCase
