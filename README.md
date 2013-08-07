@@ -31,6 +31,8 @@ Use by nkf (Nihongo Kanji Filter).
 > nkf -Lu old.log > new.log
 ```
 
+![みさわ](http://jigokuno.img.jugem.jp/20090928_1487687.gif)
+
 # Lisence
 
 This script for License is Public-domain.
