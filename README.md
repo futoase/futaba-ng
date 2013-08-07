@@ -13,9 +13,9 @@ This script aims running with PHP 5.4.15 or later...
 
 ```
 > cd app
-> grunt concat
-> cd dest
-> php -S localhost:3000 -t .
+> grunt concat:model
+> grunt concat:futaba
+> grunt shell:phpRunning
 ```
 
 # ToDo

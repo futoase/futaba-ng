@@ -1,3 +1,5 @@
+<?php require('repositories.php'); ?>
+<?php require('models.php'); ?>
 <?php
 extract($_POST,EXTR_SKIP);
 extract($_GET,EXTR_SKIP);
@@ -419,14 +421,105 @@ function proxy_connect($port){
 ?>
 
 <?php
-/* 記事書き込み */
+//サムネイル作成
+/**
+ * Build of thumbnail file.
+ *
+ * @params string $path file path.
+ * @params string $tim timestamp.
+ * @params string $ext extention name.
+ * @return void
+ */
+function thumb($path,$tim,$ext){
+  if(!function_exists("ImageCreate") ||
+     !function_exists("ImageCreateFromJPEG")){
+    return;
+  }
+
+  $fname=$path.$tim.$ext;
+  $thumb_dir = THUMB_DIR;     //サムネイル保存ディレクトリ
+  $width     = MAX_W;            //出力画像幅
+  $height    = MAX_H;            //出力画像高さ
+  // 画像の幅と高さとタイプを取得
+  $size = GetImageSize($fname);
+  switch ($size[2]) {
+    case 1 :
+      if(function_exists("ImageCreateFromGIF")){
+        $im_in = @ImageCreateFromGIF($fname);
+        if($im_in){break;}
+      }
+      if(!is_executable(realpath("./gif2png")) || 
+         !function_exists("ImageCreateFromPNG")){
+        return;
+      }
+
+      @exec(realpath("./gif2png")." $fname",$a);
+
+      if(!file_exists($path.$tim.'.png')){
+        return;
+      }
+      $im_in = @ImageCreateFromPNG($path.$tim.'.png');
+      unlink($path.$tim.'.png');
+      if(!$im_in){
+        return;
+      }
+      break;
+
+    case 2 : 
+      $im_in = @ImageCreateFromJPEG($fname);
+      if(!$im_in){
+        return;
+      }
+      break;
+    case 3 :
+      if(!function_exists("ImageCreateFromPNG")){
+        return;
+      }
+      $im_in = @ImageCreateFromPNG($fname);
+      if(!$im_in){
+        return;
+      }
+      break;
+    default : 
+      return;
+  }
+  // リサイズ
+  if ($size[0] > $width || $size[1] >$height) {
+    $key_w = $width / $size[0];
+    $key_h = $height / $size[1];
+    ($key_w < $key_h) ? $keys = $key_w : $keys = $key_h;
+    $out_w = ceil($size[0] * $keys) +1;
+    $out_h = ceil($size[1] * $keys) +1;
+  } else {
+    $out_w = $size[0];
+    $out_h = $size[1];
+  }
+  // 出力画像（サムネイル）のイメージを作成
+  if(function_exists("ImageCreateTrueColor")&&get_gd_ver()=="2"){
+    $im_out = ImageCreateTrueColor($out_w, $out_h);
+  }
+  else{
+    $im_out = ImageCreate($out_w, $out_h);
+  }
+  // 元画像を縦横とも コピーします。
+  ImageCopyResized($im_out, $im_in, 0, 0, 0, 0, $out_w, $out_h, $size[0], $size[1]);
+  // サムネイル画像を保存
+  ImageJPEG($im_out, $thumb_dir.$tim.'s.jpg',60);
+  chmod($thumb_dir.$tim.'s.jpg',0666);
+  // 作成したイメージを破棄
+  ImageDestroy($im_in);
+  ImageDestroy($im_out);
+}
+?>
+
+<?php
 /**
  * Publish to futaba borad.
  *
  * @params string $name user name.
  * @params string $email user email address.
  * @params string $sub subject.
- * @params string $com user comment.
+ * @params string $comment user comment.
  * @params string $url 
  * @params string $pwd user password.
  * @params string $upfile upload file path.
@@ -434,7 +527,7 @@ function proxy_connect($port){
  * @params string $resto thread target number.
  * @return void
  */
-function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
+function regist($name,$email,$sub,$comment,$url,$pwd,$upfile,$upfile_name,$resto){
   global $path,$badstring,$badfile,$badip,$pwdc,$textonly;
   $dest="";$mes="";
 
@@ -444,7 +537,7 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
 
   // アップロード処理
   if($upfile&&file_exists($upfile)){
-    $dest = $path.$tim.'.tmp';
+    $dest = ImageFile::getNew()->createTempFileName($path, $tim);
     move_uploaded_file($upfile, $dest);
     //↑でエラーなら↓に変更
     //copy($upfile, $dest);
@@ -456,39 +549,27 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     if(!is_array($size)){
       error("アップロードに失敗しました<br>画像ファイル以外は受け付けません",$dest);
     }
-    $chk = md5_of_file($dest);
-    foreach($badfile as $value){if(preg_match("/^$value/",$chk) === 1){
-      error("アップロードに失敗しました<br>同じ画像がありました",$dest); //拒絶画像
-    }}
+    $is_uploaded = ImageFile::getNew()->isUploaded($badfile, $dest);
+    if ($is_uploaded === true) {
+      error("アップロードに失敗しました<br>同じ画像がありました", $dest); //拒絶画像
+      return;
+    }
     chmod($dest,0666);
-    $W = $size[0];
-    $H = $size[1];
+   
+    // size[0] is width, size[1] is height. 
+    $desired_size = ImageFile::adjustmentImageCanvasSize(
+      $size[0], $size[1]
+    );
+    $W = $desired_size['width'];
+    $H = $desired_size['height'];
+    $extension = ExtensionRepository::find($size[2]);
 
-    switch ($size[2]) {
-      case 1 : $ext=".gif";break;
-      case 2 : $ext=".jpg";break;
-      case 3 : $ext=".png";break;
-      case 4 : $ext=".swf";break;
-      case 5 : $ext=".psd";break;
-      case 6 : $ext=".bmp";break;
-      case 13 : $ext=".swf";break;
-      default : $ext=".xxx";error("対応しないフォーマットです。",$dest);
-    }
-
-    // 画像表示縮小
-    if($W > MAX_W || $H > MAX_H){
-      $W2 = MAX_W / $W;
-      $H2 = MAX_H / $H;
-      ($W2 < $H2) ? $key = $W2 : $key = $H2;
-      $W = ceil($W * $key);
-      $H = ceil($H * $key);
-    }
     $mes = "画像 $upfile_name のアップロードが成功しました<br><br>";
   }
 
   foreach($badstring as $value){
     $pattern = '/' . $value . '/';
-    if(preg_match($pattern, $com) === 1 || 
+    if(preg_match($pattern, $comment) === 1 || 
        preg_match($pattern, $sub) === 1 || 
        preg_match($pattern, $name) === 1 || 
        preg_match($pattern, $email) === 1 ){
@@ -502,8 +583,8 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   if(!$name||preg_match("/^[ |　|]*$/",$name) === 1){
     $name="";
   }
-  if(!$com||preg_match("/^[ |　|\t]*$/",$com) === 1){
-    $com="";
+  if(!$comment||preg_match("/^[ |　|\t]*$/",$comment) === 1){
+    $comment="";
   }
   if(!$sub||preg_match("/^[ |　|]*$/",$sub) === 1){
     $sub=""; 
@@ -512,14 +593,14 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   if(!$resto&&!$textonly&&!is_file($dest)){
     error("画像がありません",$dest);
   }
-  if(!$com&&!is_file($dest)){
+  if(!$comment&&!is_file($dest)){
     error("何か書いて下さい",$dest);
   }
 
   $name=preg_replace("/管理/","\"管理\"",$name);
   $name=preg_replace("/削除/","\"削除\"",$name);
 
-  if(strlen($com) > 1000){
+  if(strlen($comment) > 1000){
     error("本文が長すぎますっ！",$dest);
   }
   if(strlen($name) > 100){
@@ -606,46 +687,20 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
       $now.=" ID:".substr(crypt(md5($_SERVER["REMOTE_ADDR"].IDSEED.gmdate("Ymd", $time+9*60*60)),'id'),-8);
     }
   }
-  //テキスト整形
-  $email= CleanStr($email);  
-  $email= preg_replace("/[\r\n]/","",$email);
-  $sub  = CleanStr($sub);    
-  $sub  = preg_replace("/[\r\n]/","",$sub);
-  $url  = CleanStr($url);    
-  $url  = preg_replace("/[\r\n]/","",$url);
-  $resto= CleanStr($resto);  
-  $resto= preg_replace("/[\r\n]/","",$resto);
-  $com  = CleanStr($com);
-  // 改行文字の統一。 
-  $com = str_replace( "\r\n",  "\n", $com); 
-  $com = str_replace( "\r",  "\n", $com);
-  // 連続する空行を一行
-  $com = preg_replace("/\n((　| )*\n){3,}/","\n",$com);
-  if(!BR_CHECK || substr_count($com,"\n")<BR_CHECK){
-    $com = nl2br($com);		//改行文字の前に<br>を代入する
-  }
-  $com = str_replace("\n",  "", $com);	//\nを文字列から消す。
 
-  $name=preg_replace("/◆/","◇",$name);
-  $name=preg_replace("/[\r\n]/","",$name);
-  $names=$name;
-  $name = CleanStr($name);
-  if(preg_match("/(#|＃)(.*)/",$names,$regs) === 1){
-    $cap = $regs[2];
-    $cap=strtr($cap,"&amp;", "&");
-    $cap=strtr($cap,"&#44;", ",");
-    $name=preg_replace("(#|＃)(.*)","",$name);
-    $salt=substr($cap."H.",1,2);
-    $salt=preg_replace("[^\.-z]",".",$salt);
-    $salt=strtr($salt,":;<=>?@[\\]^_`","ABCDEFGabcdef"); 
-    $name.="</b>◆".substr(crypt($cap,$salt),-10)."<b>";
-  }
+  $email = PrettifyText::replaceStringOfMail($email);
+  $sub   = PrettifyText::replaceStringOfSubject($sub);
+  $url   = PrettifyText::replaceStringOfUrl($url);
+  $resto = PrettifyText::replaceStringOfResNumber($resto);
+  $comment = PrettifyText::replaceStringOfComment($comment);
+  $name  = PrettifyText::replaceStringOfName($name);
+  $names = $name;
 
   if(!$name){
     $name="名無し";
   }
-  if(!$com){
-    $com="本文なし";
+  if(!$comment){
+    $comment="本文なし";
   }
   if(!$sub){
     $sub="無題"; 
@@ -677,20 +732,20 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
       $ltime=substr($ltime,0,-3);
     }
     if($host==$lhost||substr(md5($pwd),2,8)==$lpwd||substr(md5($pwdc),2,8)==$lpwd){
-      $pchk=1;
+      $p=1;
     }
     else{
-      $pchk=0;
+      $p=0;
     }
 
-    if(RENZOKU && $pchk && $time - $ltime < RENZOKU){
+    if(RENZOKU && $p && $time - $ltime < RENZOKU){
       error("連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
     }
 
-    if(RENZOKU && $pchk && $time - $ltime < RENZOKU2 && $upfile_name){
+    if(RENZOKU && $p && $time - $ltime < RENZOKU2 && $upfile_name){
       error("画像連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
     }
-    if(RENZOKU && $pchk && $com == $lcom && !$upfile_name){
+    if(RENZOKU && $p && $comment == $lcom && !$upfile_name){
       error("連続投稿はもうしばらく時間を置いてからお願い致します",$dest);
     }
   }
@@ -714,19 +769,19 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
     $imax=count($line)>200 ? 200 : count($line)-1;
 
     for($i=0;$i<$imax;$i++){ //画像重複チェック
-      list(,,,,,,,,,$extp,,,$timep,$chkp,) = explode(",", $line[$i]);
-      if($chkp==$chk&&file_exists($path.$timep.$extp)){
+      list(,,,,,,,,,$extensionp,,,$timep,$p,) = explode(",", $line[$i]);
+      if($p==$is_uploaded&&file_exists($path.$timep.$extensionp)){
         error("アップロードに失敗しました<br>同じ画像があります",$dest);
       }
     }
   }
   list($lastno,) = explode(",", $line[0]);
   $no = $lastno + 1;
-  isset($ext)?0:$ext="";
+  isset($extension)?0:$extension="";
   isset($W)?0:$W="";
   isset($H)?0:$H="";
   isset($chk)?0:$chk="";
-  $newline = "$no,$now,$name,$email,$sub,$com,$url,$host,$pass,$ext,$W,$H,$tim,$chk,\n";
+  $newline = "$no,$now,$name,$email,$sub,$comment,$url,$host,$pass,$extension,$W,$H,$tim,$,\n";
   $newline.= implode('', $line);
   ftruncate($fp,0);
   set_file_buffer($fp, 0);
@@ -810,8 +865,8 @@ function regist($name,$email,$sub,$com,$url,$pwd,$upfile,$upfile_name,$resto){
   }
 
   if($dest&&file_exists($dest)){
-    rename($dest,$path.$tim.$ext);
-    if(USE_THUMB){thumb($path,$tim,$ext);}
+    rename($dest,$path.$tim.$extension);
+    if(USE_THUMB){thumb($path,$tim,$extension);}
   }
   updatelog();
 
