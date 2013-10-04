@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=640" />
+
+    <link rel="stylesheet" href="stylesheets/core.css" media="screen"/>
+    <link rel="stylesheet" href="stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)"/>
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
+
+    <script type="text/javascript" src="javascripts/modernizr.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $('#main_content').headsmart()
+      })
+    </script>
+    <title>Futaba-ng by futoase</title>
+  </head>
+
+  <body>
+    <a id="forkme_banner" href="https://github.com/futoase/futaba-ng">View on GitHub</a>
+    <div class="shell">
+
+      <header>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <h1>Futaba-ng</h1>
+            <h2>futaba chan script.</h2>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+      </header>
+
+      <section id="downloads">
+        <span class="inner">
+          <a href="https://github.com/futoase/futaba-ng/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/futoase/futaba-ng/tarball/master" class="tgz"><em>download</em> .TGZ</a>
+        </span>
+      </section>
+
+
+      <span class="banner-fix"></span>
+
+
+      <section id="main_content">
+        <h1>
+<a name="futabaphp" class="anchor" href="#futabaphp"><span class="octicon octicon-link"></span></a>futaba.php</h1>
+
+<p>futaba.php is Message board scripts.</p>
+
+<p>I branched script to this repository.
+Is script used in <a href="http://www.2chan.net/">http://www.2chan.net/</a>.</p>
+
+<p>This script aims running with PHP 5.4.15 or later...</p>
+
+<h1>
+<a name="how-to-running" class="anchor" href="#how-to-running"><span class="octicon octicon-link"></span></a>How to running</h1>
+
+<ul>
+<li>PHP 5.4.15 or later</li>
+</ul><pre><code>&gt; cd app
+&gt; grunt concat:model
+&gt; grunt concat:futaba
+&gt; grunt shell:phpRunning
+</code></pre>
+
+<h1>
+<a name="todo" class="anchor" href="#todo"><span class="octicon octicon-link"></span></a>ToDo</h1>
+
+<p>Script charactor code is UTF-8, But previous code is Shift-JIS. 
+There is a problem of compatibility of the log charactor code.</p>
+
+<h2>
+<a name="countermeasure" class="anchor" href="#countermeasure"><span class="octicon octicon-link"></span></a>Countermeasure</h2>
+
+<p>Use by nkf (Nihongo Kanji Filter).</p>
+
+<pre><code>&gt; nkf -Lu old.log &gt; new.log
+</code></pre>
+
+<p><img src="http://jigokuno.img.jugem.jp/20090928_1487687.gif" alt="みさわ"></p>
+
+<h1>
+<a name="lisence" class="anchor" href="#lisence"><span class="octicon octicon-link"></span></a>Lisence</h1>
+
+<p>This script for License is Public-domain.
+I accordance with the distribution of the <a href="http://www.2chan.net/script/">original license</a>.</p>
+      </section>
+
+      <footer>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <p>this project by <a href="https://github.com/futoase">futoase</a> can be found on <a href="https://github.com/futoase/futaba-ng">GitHub</a></p>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+        <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
+        <span class="octocat"></span>
+      </footer>
+
+    </div>
+
+    
+  </body>
+</html>
