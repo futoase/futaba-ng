@@ -37,3 +37,7 @@ Use by nkf (Nihongo Kanji Filter).
 
 This script for License is Public-domain.
 I accordance with the distribution of the [original license](http://www.2chan.net/script/).
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/futoase/futaba-ng/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
